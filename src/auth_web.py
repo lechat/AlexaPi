@@ -61,12 +61,25 @@ class Start(object):
 	index.exposed = True
 	code.exposed = True
 
+
+def random_port():
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	sock.bind(('', 0))
+	sock.listen(1)
+	port = sock.getsockname()[1]
+	sock.close()
+
+	return port
+
+
+cherry_port = int(os.environ.get('PORT', random_port()))
+
 cherrypy.config.update({'server.socket_host': '0.0.0.0'})
-cherrypy.config.update({'server.socket_port': int(os.environ.get('PORT', '5050'))})
+cherrypy.config.update({'server.socket_port': cherry_port})
 cherrypy.config.update({"environment": "embedded"})
 
 
 ip = [(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
-print "Ready goto http://{}:5050 or http://localhost:5050  to begin the auth process".format(ip)
+print "Ready goto http://{ip}:{port} or http://localhost:{port}  to begin the auth process".format(ip=ip, port=cherry_port)
 print "(Press Ctrl-C to exit this script once authorization is complete)"
 cherrypy.quickstart(Start())
